@@ -20,6 +20,7 @@ dependencies {
         intellijIdea("2025.2.6.2")
         bundledPlugin("com.intellij.java")
         testFramework(TestFrameworkType.Platform)
+        pluginVerifier()
     }
 
     testImplementation("junit:junit:4.13.2")
@@ -36,6 +37,12 @@ intellijPlatform {
         version = project.version.toString()
         ideaVersion {
             sinceBuild = "252"
+        }
+    }
+
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
 }
