@@ -1,0 +1,32 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Compile and build the plugin
+    cmds:
+      - ./gradlew build
+
+  run:
+    desc: Launch a sandbox IDE with the plugin installed
+    cmds:
+      - ./gradlew runIde
+
+  test:
+    desc: Run the test suite
+    cmds:
+      - ./gradlew test
+
+  clean:
+    desc: Remove build outputs
+    cmds:
+      - ./gradlew clean
+
+  package:
+    desc: Build the distributable plugin zip
+    cmds:
+      - ./gradlew buildPlugin
+
+  verify:
+    desc: Run the IntelliJ Plugin Verifier against the built plugin
+    cmds:
+      - ./gradlew verifyPlugin

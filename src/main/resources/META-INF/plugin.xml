@@ -1,0 +1,23 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>org.strassburger.builderbuilder</id>
+    <name>Builder Builder</name>
+    <vendor url="https://strassburger.org/">Jan Strassburger</vendor>
+
+    <description><![CDATA[
+        Generates builder classes for Java classes.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <actions>
+        <action id="org.strassburger.builderbuilder.GenerateBuilderCommentAction"
+                class="org.strassburger.builderbuilder.action.GenerateBuilderCommentAction"
+                text="Generate Builder Comment"
+                description="Inserts a comment with the current class name at the caret position">
+            <add-to-group group-id="JavaGenerateGroup1" relative-to-action="Actions.ActionsPlugin.GenerateToString"
+                          anchor="after"/>
+        </action>
+    </actions>
+</idea-plugin>
