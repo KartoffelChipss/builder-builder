@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("java")
     id("org.jetbrains.intellij.platform")
@@ -17,6 +19,7 @@ dependencies {
     intellijPlatform {
         intellijIdea("2025.2.6.2")
         bundledPlugin("com.intellij.java")
+        testFramework(TestFrameworkType.Platform)
     }
 
     testImplementation("junit:junit:4.13.2")

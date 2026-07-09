@@ -12,10 +12,10 @@
     <depends>com.intellij.java</depends>
 
     <actions>
-        <action id="org.strassburger.builderbuilder.GenerateBuilderCommentAction"
-                class="org.strassburger.builderbuilder.action.GenerateBuilderCommentAction"
-                text="Generate Builder Comment"
-                description="Inserts a comment with the current class name at the caret position">
+        <action id="org.strassburger.builderbuilder.GenerateBuilderAction"
+                class="org.strassburger.builderbuilder.action.GenerateBuilderAction"
+                text="Generate Builder"
+                description="Generates a Builder inner class for this class's fields">
             <add-to-group group-id="JavaGenerateGroup1" relative-to-action="Actions.ActionsPlugin.GenerateToString"
                           anchor="after"/>
         </action>
