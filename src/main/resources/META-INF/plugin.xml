@@ -2,11 +2,36 @@
 <idea-plugin>
     <id>org.strassburger.builderbuilder</id>
     <name>Builder Builder</name>
-    <vendor url="https://strassburger.org/">Jan Strassburger</vendor>
+    <vendor email="contact@strassburger.org" url="https://strassburger.org/">Jan Strassburger</vendor>
 
     <description><![CDATA[
-        Generates builder classes for Java classes.
+        <p>Generates a nested <code>Builder</code> class for a Java class's fields. Available from the
+        <b>Code &gt; Generate</b> menu (Alt+Insert), right below <code>toString()</code>.</p>
+
+        <p>Features:</p>
+        <ul>
+            <li>Choose exactly which fields the builder should expose, via a field chooser dialog.</li>
+            <li>If the class already has a constructor matching the selected fields, the builder calls it
+            instead of assigning fields directly. Works with immutable classes and private constructors.</li>
+            <li>Configurable setter method prefix (defaults to <code>with</code>, e.g. <code>withName(...)</code>).</li>
+            <li>Optional static <code>builder()</code> factory method.</li>
+            <li><code>but()</code> method on the builder for creating modified copies.</li>
+            <li>Optional JSpecify <code>@Nullable</code> annotations, with null-checks for required fields
+            thrown as <code>IllegalStateException</code> in <code>build()</code>.</li>
+            <li>Fields already marked <code>@Deprecated</code> get a <code>@Deprecated</code> setter.</li>
+        </ul>
+
+        <p>Defaults for all options can be configured under
+        <b>Settings/Preferences &gt; Tools &gt; Builder Builder</b>.</p>
     ]]></description>
+
+    <change-notes><![CDATA[
+        <ul>
+            <li><b>1.0.0</b>: Initial release: Generate Builder action with field selection, configurable
+            method prefix, optional <code>but()</code> and <code>builder()</code> methods, JSpecify null-safety
+            support, and application-level default settings.</li>
+        </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
