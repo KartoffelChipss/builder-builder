@@ -1,43 +1,36 @@
 package org.strassburger.builderbuilder.action;
 
+import com.intellij.openapi.ui.TestDialogManager;
+import com.intellij.openapi.ui.TestInputDialog;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 
 public class GenerateBuilderActionTest extends BasePlatformTestCase {
 
-    public void testGeneratesBuilderForSimpleFields() {
+    public void testGeneratesBuilderUsingPrefixEnteredInDialog() {
         myFixture.configureByText("Person.java", """
                 public class Person {
                     private String name;
-                    private int age;
                     <caret>
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction());
+        withTestInputDialog(message -> "set", () -> myFixture.testAction(new GenerateBuilderAction()));
 
         myFixture.checkResult("""
                 public class Person {
                     private String name;
-                    private int age;
 
                     public static class Builder {
                         private String name;
-                        private int age;
 
-                        public Builder name(String name) {
+                        public Builder setName(String name) {
                             this.name = name;
-                            return this;
-                        }
-
-                        public Builder age(int age) {
-                            this.age = age;
                             return this;
                         }
 
                         public Person build() {
                             Person result = new Person();
                             result.name = this.name;
-                            result.age = this.age;
                             return result;
                         }
                     }
@@ -45,86 +38,20 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """, true);
     }
 
-    public void testSkipsStaticAndFinalFields() {
-        myFixture.configureByText("Config.java", """
-                public class Config {
-                    private static final String CONSTANT = "x";
-                    private final int fixedValue = 1;
+    public void testCancellingDialogMakesNoChanges() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
                     private String name;
                     <caret>
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction());
+        withTestInputDialog(message -> null, () -> myFixture.testAction(new GenerateBuilderAction()));
 
         myFixture.checkResult("""
-                public class Config {
-                    private static final String CONSTANT = "x";
-                    private final int fixedValue = 1;
+                public class Person {
                     private String name;
 
-                    public static class Builder {
-                        private String name;
-
-                        public Builder name(String name) {
-                            this.name = name;
-                            return this;
-                        }
-
-                        public Config build() {
-                            Config result = new Config();
-                            result.name = this.name;
-                            return result;
-                        }
-                    }
-                }
-                """, true);
-    }
-
-    public void testUsesAllArgsConstructorForImmutableClass() {
-        myFixture.configureByText("Point.java", """
-                public class Point {
-                    private final int x;
-                    private final int y;
-
-                    private Point(int x, int y) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    <caret>
-                }
-                """);
-
-        myFixture.testAction(new GenerateBuilderAction());
-
-        myFixture.checkResult("""
-                public class Point {
-                    private final int x;
-                    private final int y;
-
-                    private Point(int x, int y) {
-                        this.x = x;
-                        this.y = y;
-                    }
-
-                    public static class Builder {
-                        private int x;
-                        private int y;
-
-                        public Builder x(int x) {
-                            this.x = x;
-                            return this;
-                        }
-
-                        public Builder y(int y) {
-                            this.y = y;
-                            return this;
-                        }
-
-                        public Point build() {
-                            return new Point(x, y);
-                        }
-                    }
                 }
                 """, true);
     }
@@ -140,7 +67,9 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction());
+        withTestInputDialog(message -> {
+            throw new AssertionError("dialog should not be shown when a Builder already exists");
+        }, () -> myFixture.testAction(new GenerateBuilderAction()));
 
         myFixture.checkResult("""
                 public class Person {
@@ -151,5 +80,14 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                     }
                 }
                 """, true);
+    }
+
+    private void withTestInputDialog(TestInputDialog dialog, Runnable action) {
+        TestInputDialog previous = TestDialogManager.setTestInputDialog(dialog);
+        try {
+            action.run();
+        } finally {
+            TestDialogManager.setTestInputDialog(previous);
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -26,7 +27,10 @@ public class GenerateBuilderAction extends AnAction {
         PsiClass psiClass = enclosingClassAt(editor, psiFile);
         if (psiClass == null || !BuilderGenerator.canGenerate(psiClass)) return;
 
-        WriteCommandAction.runWriteCommandAction(project, () -> BuilderGenerator.generate(project, psiClass));
+        String prefix = Messages.showInputDialog(project, "Method prefix:", "Generate Builder", null, "with", null);
+        if (prefix == null) return;
+
+        WriteCommandAction.runWriteCommandAction(project, () -> BuilderGenerator.generate(project, psiClass, prefix));
     }
 
     @Override

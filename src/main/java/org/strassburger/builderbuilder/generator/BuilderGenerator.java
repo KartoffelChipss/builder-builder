@@ -26,13 +26,13 @@ public final class BuilderGenerator {
         return psiClass.findInnerClassByName(BUILDER_CLASS_NAME, false) == null;
     }
 
-    public static void generate(Project project, PsiClass psiClass) {
+    public static void generate(Project project, PsiClass psiClass, String methodPrefix) {
         PsiField[] instanceFields = instanceFields(psiClass);
         PsiMethod allArgsConstructor = findAllArgsConstructor(psiClass, instanceFields);
         PsiField[] fields = allArgsConstructor != null ? instanceFields : nonFinalFields(instanceFields);
 
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-        String builderText = builderClassText(psiClass.getName(), fields, allArgsConstructor != null);
+        String builderText = builderClassText(psiClass.getName(), fields, allArgsConstructor != null, methodPrefix);
         PsiClass dummyContainer = factory.createClassFromText(builderText, psiClass);
         PsiClass builderTemplate = dummyContainer.getInnerClasses()[0];
 
@@ -79,7 +79,7 @@ public final class BuilderGenerator {
         return null;
     }
 
-    private static String builderClassText(String className, PsiField[] fields, boolean useConstructor) {
+    private static String builderClassText(String className, PsiField[] fields, boolean useConstructor, String methodPrefix) {
         StringBuilder text = new StringBuilder();
         text.append("public static class ").append(BUILDER_CLASS_NAME).append(" {\n");
 
@@ -90,7 +90,7 @@ public final class BuilderGenerator {
         for (PsiField field : fields) {
             String type = field.getType().getCanonicalText();
             String name = field.getName();
-            text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(name)
+            text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(methodName(methodPrefix, name))
                     .append('(').append(type).append(' ').append(name).append(") {\n")
                     .append("this.").append(name).append(" = ").append(name).append(";\n")
                     .append("return this;\n")
@@ -119,5 +119,12 @@ public final class BuilderGenerator {
 
         text.append("}\n");
         return text.toString();
+    }
+
+    private static String methodName(String prefix, String fieldName) {
+        if (prefix.isEmpty()) {
+            return fieldName;
+        }
+        return prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 }
