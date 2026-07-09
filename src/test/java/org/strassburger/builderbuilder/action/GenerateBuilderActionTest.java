@@ -3,6 +3,8 @@ package org.strassburger.builderbuilder.action;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.strassburger.builderbuilder.generator.BuilderGenerationOptions;
 
+import java.util.Set;
+
 public class GenerateBuilderActionTest extends BasePlatformTestCase {
 
     public void testGeneratesBuilderUsingOptionsFromDialog() {
@@ -13,7 +15,8 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("set", false, false)));
+        myFixture.testAction(new GenerateBuilderAction(
+                (project, psiClass) -> new BuilderGenerationOptions("set", false, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -45,7 +48,8 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("with", true, false)));
+        myFixture.testAction(new GenerateBuilderAction(
+                (project, psiClass) -> new BuilderGenerationOptions("with", true, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -81,7 +85,8 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("with", false, true)));
+        myFixture.testAction(new GenerateBuilderAction(
+                (project, psiClass) -> new BuilderGenerationOptions("with", false, true, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -109,6 +114,41 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testOnlySelectedFieldsAreIncluded() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    private int age;
+                    <caret>
+                }
+                """);
+
+        myFixture.testAction(new GenerateBuilderAction(
+                (project, psiClass) -> new BuilderGenerationOptions("with", false, false, Set.of("name"))));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+                    private int age;
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testCancellingDialogMakesNoChanges() {
         myFixture.configureByText("Person.java", """
                 public class Person {
@@ -117,7 +157,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> null));
+        myFixture.testAction(new GenerateBuilderAction((project, psiClass) -> null));
 
         myFixture.checkResult("""
                 public class Person {
@@ -138,7 +178,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> {
+        myFixture.testAction(new GenerateBuilderAction((project, psiClass) -> {
             throw new AssertionError("dialog should not be shown when a Builder already exists");
         }));
 

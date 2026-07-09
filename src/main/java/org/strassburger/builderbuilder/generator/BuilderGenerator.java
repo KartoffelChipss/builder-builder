@@ -30,10 +30,18 @@ public final class BuilderGenerator {
         return psiClass.findInnerClassByName(BUILDER_CLASS_NAME, false) == null;
     }
 
+    public static PsiField[] candidateFields(PsiClass psiClass) {
+        return Arrays.stream(psiClass.getFields())
+                .filter(field -> !field.hasModifierProperty(PsiModifier.STATIC))
+                .toArray(PsiField[]::new);
+    }
+
     public static void generate(Project project, PsiClass psiClass, BuilderGenerationOptions options) {
-        PsiField[] instanceFields = instanceFields(psiClass);
-        PsiMethod allArgsConstructor = findAllArgsConstructor(psiClass, instanceFields);
-        PsiField[] fields = allArgsConstructor != null ? instanceFields : nonFinalFields(instanceFields);
+        PsiField[] selectedFields = Arrays.stream(candidateFields(psiClass))
+                .filter(field -> options.selectedFieldNames().contains(field.getName()))
+                .toArray(PsiField[]::new);
+        PsiMethod allArgsConstructor = findAllArgsConstructor(psiClass, selectedFields);
+        PsiField[] fields = allArgsConstructor != null ? selectedFields : nonFinalFields(selectedFields);
 
         StringBuilder text = new StringBuilder();
         if (options.generateBuilderMethod()) {
@@ -56,12 +64,6 @@ public final class BuilderGenerator {
             codeStyleManager.shortenClassReferences(addedFactoryMethod);
             formatter.reformat(addedFactoryMethod);
         }
-    }
-
-    private static PsiField[] instanceFields(PsiClass psiClass) {
-        return Arrays.stream(psiClass.getFields())
-                .filter(field -> !field.hasModifierProperty(PsiModifier.STATIC))
-                .toArray(PsiField[]::new);
     }
 
     private static PsiField[] nonFinalFields(PsiField[] fields) {

@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.FlowLayout;
+import java.util.Set;
 
 public class GenerateBuilderDialog extends DialogWrapper {
 
@@ -52,11 +53,12 @@ public class GenerateBuilderDialog extends DialogWrapper {
         return methodPrefixField;
     }
 
-    public BuilderGenerationOptions getOptions() {
+    public BuilderGenerationOptions getOptions(Set<String> selectedFieldNames) {
         return new BuilderGenerationOptions(
                 methodPrefixField.getText(),
                 generateButMethodCheckBox.isSelected(),
-                generateBuilderMethodCheckBox.isSelected());
+                generateBuilderMethodCheckBox.isSelected(),
+                selectedFieldNames);
     }
 
     JTextField getMethodPrefixField() {

@@ -2,8 +2,14 @@ package org.strassburger.builderbuilder.generator;
 
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BuilderGeneratorTest extends BasePlatformTestCase {
 
@@ -286,7 +292,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true);
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -328,7 +334,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true);
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -362,6 +368,92 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testOnlySelectedFieldsAreIncludedInBuilder() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    private int age;
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, Set.of("name"));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+                    private int age;
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
+    public void testConstructorMatchingConsidersOnlySelectedFields() {
+        myFixture.configureByText("Point.java", """
+                public class Point {
+                    private final int x;
+                    private final int y;
+                    private String label;
+
+                    private Point(int x, int y) {
+                        this.x = x;
+                        this.y = y;
+                    }
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, Set.of("x", "y"));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Point {
+                    private final int x;
+                    private final int y;
+                    private String label;
+
+                    private Point(int x, int y) {
+                        this.x = x;
+                        this.y = y;
+                    }
+
+                    public static class Builder {
+                        private int x;
+                        private int y;
+
+                        public Builder withX(int x) {
+                            this.x = x;
+                            return this;
+                        }
+
+                        public Builder withY(int y) {
+                            this.y = y;
+                            return this;
+                        }
+
+                        public Point build() {
+                            return new Point(x, y);
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testCanGenerateIsFalseWhenBuilderAlreadyExists() {
         myFixture.configureByText("Person.java", """
                 public class Person {
@@ -381,8 +473,14 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
 
     private void generate(String prefix, boolean generateButMethod) {
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod, false);
+        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod, false, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+    }
+
+    private Set<String> allFieldNames(PsiClass psiClass) {
+        return Arrays.stream(BuilderGenerator.candidateFields(psiClass))
+                .map(PsiField::getName)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private PsiClass soleClass() {
