@@ -6,5 +6,6 @@ public record BuilderGenerationOptions(
         String methodPrefix,
         boolean generateButMethod,
         boolean generateBuilderMethod,
+        boolean generateNullSafety,
         Set<String> selectedFieldNames) {
 }

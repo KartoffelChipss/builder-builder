@@ -16,7 +16,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """);
 
         myFixture.testAction(new GenerateBuilderAction(
-                (project, psiClass) -> new BuilderGenerationOptions("set", false, false, Set.of("name"))));
+                (project, psiClass) -> new BuilderGenerationOptions("set", false, false, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -49,7 +49,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """);
 
         myFixture.testAction(new GenerateBuilderAction(
-                (project, psiClass) -> new BuilderGenerationOptions("with", true, false, Set.of("name"))));
+                (project, psiClass) -> new BuilderGenerationOptions("with", true, false, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -86,7 +86,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """);
 
         myFixture.testAction(new GenerateBuilderAction(
-                (project, psiClass) -> new BuilderGenerationOptions("with", false, true, Set.of("name"))));
+                (project, psiClass) -> new BuilderGenerationOptions("with", false, true, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {
@@ -124,7 +124,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 """);
 
         myFixture.testAction(new GenerateBuilderAction(
-                (project, psiClass) -> new BuilderGenerationOptions("with", false, false, Set.of("name"))));
+                (project, psiClass) -> new BuilderGenerationOptions("with", false, false, false, Set.of("name"))));
 
         myFixture.checkResult("""
                 public class Person {

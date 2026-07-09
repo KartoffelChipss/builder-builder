@@ -11,6 +11,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +23,7 @@ public final class BuilderGenerator {
     private static final String BUILDER_CLASS_NAME = "Builder";
     private static final String BUT_METHOD_NAME = "but";
     private static final String BUILDER_FACTORY_METHOD_NAME = "builder";
+    private static final String NULLABLE_ANNOTATION_FQN = "org.jspecify.annotations.Nullable";
 
     private BuilderGenerator() {
     }
@@ -94,6 +96,32 @@ public final class BuilderGenerator {
     }
 
     /**
+     * Matches any {@code @Nullable} annotation by simple name (JSpecify, JetBrains, javax, ...)
+     * rather than resolving it, for the same reason as {@link #isDeprecated(PsiField)}.
+     */
+    private static boolean isNullable(PsiField field) {
+        PsiModifierList modifierList = field.getModifierList();
+        if (modifierList == null) {
+            return false;
+        }
+        for (PsiAnnotation annotation : modifierList.getAnnotations()) {
+            String qualifiedName = annotation.getQualifiedName();
+            if (qualifiedName == null) {
+                continue;
+            }
+            String simpleName = qualifiedName.substring(qualifiedName.lastIndexOf('.') + 1);
+            if ("Nullable".equals(simpleName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isPrimitive(PsiField field) {
+        return field.getType() instanceof PsiPrimitiveType;
+    }
+
+    /**
      * Finds a constructor whose parameters match the given fields 1:1, in order and by type,
      * so the builder can construct immutable instances through it instead of field assignment.
      */
@@ -123,7 +151,12 @@ public final class BuilderGenerator {
         StringBuilder text = new StringBuilder();
         text.append("public static class ").append(BUILDER_CLASS_NAME).append(" {\n");
 
+        boolean nullSafety = options.generateNullSafety();
+
         for (PsiField field : fields) {
+            if (nullSafety && !isPrimitive(field)) {
+                text.append('@').append(NULLABLE_ANNOTATION_FQN).append(' ');
+            }
             text.append("private ").append(field.getType().getCanonicalText()).append(' ').append(field.getName()).append(";\n");
         }
 
@@ -133,8 +166,11 @@ public final class BuilderGenerator {
             if (isDeprecated(field)) {
                 text.append("@Deprecated\n");
             }
-            text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(methodName(methodPrefix, name))
-                    .append('(').append(type).append(' ').append(name).append(") {\n")
+            text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(methodName(methodPrefix, name)).append('(');
+            if (nullSafety && !isPrimitive(field) && isNullable(field)) {
+                text.append('@').append(NULLABLE_ANNOTATION_FQN).append(' ');
+            }
+            text.append(type).append(' ').append(name).append(") {\n")
                     .append("this.").append(name).append(" = ").append(name).append(";\n")
                     .append("return this;\n")
                     .append("}\n");
@@ -145,6 +181,16 @@ public final class BuilderGenerator {
         }
 
         text.append("public ").append(className).append(" build() {\n");
+        if (nullSafety) {
+            for (PsiField field : fields) {
+                if (!isPrimitive(field) && !isNullable(field)) {
+                    String name = field.getName();
+                    text.append("if (").append(name).append(" == null) {\n")
+                            .append("throw new IllegalStateException(\"").append(name).append(" must not be null\");\n")
+                            .append("}\n");
+                }
+            }
+        }
         if (useConstructor) {
             text.append("return new ").append(className).append('(');
             for (int i = 0; i < fields.length; i++) {

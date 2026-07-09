@@ -292,7 +292,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, allFieldNames(psiClass));
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, false, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -334,7 +334,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, allFieldNames(psiClass));
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true, false, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -377,7 +377,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, Set.of("name"));
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, false, Set.of("name"));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -418,7 +418,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """);
 
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, Set.of("x", "y"));
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, false, Set.of("x", "y"));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
 
         myFixture.checkResult("""
@@ -454,6 +454,120 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testNullSafetyAnnotatesNullableFieldsAndChecksRequiredOnes() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    @org.jetbrains.annotations.Nullable
+                    private String nickname;
+                    private int age;
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, true, allFieldNames(psiClass));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+                    @org.jetbrains.annotations.Nullable
+                    private String nickname;
+                    private int age;
+
+                    public static class Builder {
+                        @org.jspecify.annotations.Nullable
+                        private String name;
+                        @org.jspecify.annotations.Nullable
+                        private String nickname;
+                        private int age;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Builder withNickname(@org.jspecify.annotations.Nullable String nickname) {
+                            this.nickname = nickname;
+                            return this;
+                        }
+
+                        public Builder withAge(int age) {
+                            this.age = age;
+                            return this;
+                        }
+
+                        public Person build() {
+                            if (name == null) {
+                                throw new IllegalStateException("name must not be null");
+                            }
+                            Person result = new Person();
+                            result.name = this.name;
+                            result.nickname = this.nickname;
+                            result.age = this.age;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
+    public void testNullSafetyChecksApplyBeforeConstructorBasedBuild() {
+        myFixture.configureByText("Point.java", """
+                public class Point {
+                    private final String label;
+                    @org.jetbrains.annotations.Nullable
+                    private final String note;
+
+                    private Point(String label, String note) {
+                        this.label = label;
+                        this.note = note;
+                    }
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, false, true, allFieldNames(psiClass));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Point {
+                    private final String label;
+                    @org.jetbrains.annotations.Nullable
+                    private final String note;
+
+                    private Point(String label, String note) {
+                        this.label = label;
+                        this.note = note;
+                    }
+
+                    public static class Builder {
+                        @org.jspecify.annotations.Nullable
+                        private String label;
+                        @org.jspecify.annotations.Nullable
+                        private String note;
+
+                        public Builder withLabel(String label) {
+                            this.label = label;
+                            return this;
+                        }
+
+                        public Builder withNote(@org.jspecify.annotations.Nullable String note) {
+                            this.note = note;
+                            return this;
+                        }
+
+                        public Point build() {
+                            if (label == null) {
+                                throw new IllegalStateException("label must not be null");
+                            }
+                            return new Point(label, note);
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testCanGenerateIsFalseWhenBuilderAlreadyExists() {
         myFixture.configureByText("Person.java", """
                 public class Person {
@@ -473,7 +587,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
 
     private void generate(String prefix, boolean generateButMethod) {
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod, false, allFieldNames(psiClass));
+        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod, false, false, allFieldNames(psiClass));
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
     }
 

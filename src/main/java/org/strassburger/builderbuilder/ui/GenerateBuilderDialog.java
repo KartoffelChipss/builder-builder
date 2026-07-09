@@ -20,6 +20,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
     private final JTextField methodPrefixField = new JTextField("with", 15);
     private final JCheckBox generateButMethodCheckBox = new JCheckBox("Generate but() method for creating modified copies");
     private final JCheckBox generateBuilderMethodCheckBox = new JCheckBox("Generate static builder() factory method", true);
+    private final JCheckBox generateNullSafetyCheckBox = new JCheckBox("Add JSpecify @Nullable annotations and null-check required fields");
 
     public GenerateBuilderDialog(@Nullable Project project) {
         super(project);
@@ -45,6 +46,10 @@ public class GenerateBuilderDialog extends DialogWrapper {
         checkboxRow.add(generateButMethodCheckBox);
         panel.add(checkboxRow);
 
+        JPanel nullSafetyRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        nullSafetyRow.add(generateNullSafetyCheckBox);
+        panel.add(nullSafetyRow);
+
         return panel;
     }
 
@@ -58,6 +63,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
                 methodPrefixField.getText(),
                 generateButMethodCheckBox.isSelected(),
                 generateBuilderMethodCheckBox.isSelected(),
+                generateNullSafetyCheckBox.isSelected(),
                 selectedFieldNames);
     }
 
@@ -71,5 +77,9 @@ public class GenerateBuilderDialog extends DialogWrapper {
 
     JCheckBox getGenerateBuilderMethodCheckBox() {
         return generateBuilderMethodCheckBox;
+    }
+
+    JCheckBox getGenerateNullSafetyCheckBox() {
+        return generateNullSafetyCheckBox;
     }
 }
