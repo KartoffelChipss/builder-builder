@@ -159,9 +159,10 @@ public final class BuilderGenerator {
     }
 
     private static String methodName(String prefix, String fieldName) {
-        if (prefix.isEmpty()) {
+        String trimmedPrefix = prefix.trim();
+        if (trimmedPrefix.isEmpty()) {
             return fieldName;
         }
-        return prefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+        return trimmedPrefix + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 }

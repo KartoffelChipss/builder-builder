@@ -78,6 +78,37 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testBlankPrefixUsesFieldNameDirectly() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                }
+                """);
+
+        generate("   ");
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder name(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testSkipsStaticAndFinalFields() {
         myFixture.configureByText("Config.java", """
                 public class Config {
