@@ -14,7 +14,7 @@
     <actions>
         <action id="org.strassburger.builderbuilder.GenerateBuilderAction"
                 class="org.strassburger.builderbuilder.action.GenerateBuilderAction"
-                text="Generate Builder"
+                text="Builder"
                 description="Generates a Builder inner class for this class's fields">
             <add-to-group group-id="JavaGenerateGroup1" relative-to-action="Actions.ActionsPlugin.GenerateToString"
                           anchor="after"/>

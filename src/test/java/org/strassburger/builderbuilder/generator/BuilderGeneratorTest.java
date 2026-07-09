@@ -160,6 +160,50 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testGeneratesButMethodWhenRequested() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    private int age;
+                }
+                """);
+
+        generate("with", true);
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+                    private int age;
+
+                    public static class Builder {
+                        private String name;
+                        private int age;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Builder withAge(int age) {
+                            this.age = age;
+                            return this;
+                        }
+
+                        public Builder but() {
+                            return new Builder().withName(name).withAge(age);
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            result.age = this.age;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testCanGenerateIsFalseWhenBuilderAlreadyExists() {
         myFixture.configureByText("Person.java", """
                 public class Person {
@@ -174,8 +218,13 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
     }
 
     private void generate(String prefix) {
+        generate(prefix, false);
+    }
+
+    private void generate(String prefix, boolean generateButMethod) {
         PsiClass psiClass = soleClass();
-        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, prefix));
+        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
     }
 
     private PsiClass soleClass() {

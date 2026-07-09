@@ -18,6 +18,7 @@ import java.util.Arrays;
 public final class BuilderGenerator {
 
     private static final String BUILDER_CLASS_NAME = "Builder";
+    private static final String BUT_METHOD_NAME = "but";
 
     private BuilderGenerator() {
     }
@@ -26,13 +27,13 @@ public final class BuilderGenerator {
         return psiClass.findInnerClassByName(BUILDER_CLASS_NAME, false) == null;
     }
 
-    public static void generate(Project project, PsiClass psiClass, String methodPrefix) {
+    public static void generate(Project project, PsiClass psiClass, BuilderGenerationOptions options) {
         PsiField[] instanceFields = instanceFields(psiClass);
         PsiMethod allArgsConstructor = findAllArgsConstructor(psiClass, instanceFields);
         PsiField[] fields = allArgsConstructor != null ? instanceFields : nonFinalFields(instanceFields);
 
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-        String builderText = builderClassText(psiClass.getName(), fields, allArgsConstructor != null, methodPrefix);
+        String builderText = builderClassText(psiClass.getName(), fields, allArgsConstructor != null, options);
         PsiClass dummyContainer = factory.createClassFromText(builderText, psiClass);
         PsiClass builderTemplate = dummyContainer.getInnerClasses()[0];
 
@@ -79,7 +80,8 @@ public final class BuilderGenerator {
         return null;
     }
 
-    private static String builderClassText(String className, PsiField[] fields, boolean useConstructor, String methodPrefix) {
+    private static String builderClassText(String className, PsiField[] fields, boolean useConstructor, BuilderGenerationOptions options) {
+        String methodPrefix = options.methodPrefix();
         StringBuilder text = new StringBuilder();
         text.append("public static class ").append(BUILDER_CLASS_NAME).append(" {\n");
 
@@ -95,6 +97,10 @@ public final class BuilderGenerator {
                     .append("this.").append(name).append(" = ").append(name).append(";\n")
                     .append("return this;\n")
                     .append("}\n");
+        }
+
+        if (options.generateButMethod()) {
+            text.append(butMethodText(fields, methodPrefix));
         }
 
         text.append("public ").append(className).append(" build() {\n");
@@ -118,6 +124,18 @@ public final class BuilderGenerator {
         text.append("}\n");
 
         text.append("}\n");
+        return text.toString();
+    }
+
+    private static String butMethodText(PsiField[] fields, String methodPrefix) {
+        StringBuilder text = new StringBuilder();
+        text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(BUT_METHOD_NAME).append("() {\n")
+                .append("return new ").append(BUILDER_CLASS_NAME).append("()");
+        for (PsiField field : fields) {
+            String name = field.getName();
+            text.append('.').append(methodName(methodPrefix, name)).append('(').append(name).append(')');
+        }
+        text.append(";\n}\n");
         return text.toString();
     }
 
