@@ -204,6 +204,90 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testGeneratesBuilderFactoryMethodWhenRequested() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+
+                    public static Builder builder() {
+                        return new Builder();
+                    }
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
+    public void testBuilderFactoryMethodStaysImmediatelyAboveBuilderClassAmongOtherMembers() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+
+                    @Override
+                    public String toString() {
+                        return "Person{" + name + "}";
+                    }
+                }
+                """);
+
+        PsiClass psiClass = soleClass();
+        BuilderGenerationOptions options = new BuilderGenerationOptions("with", false, true);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+
+                    @Override
+                    public String toString() {
+                        return "Person{" + name + "}";
+                    }
+
+                    public static Builder builder() {
+                        return new Builder();
+                    }
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testCanGenerateIsFalseWhenBuilderAlreadyExists() {
         myFixture.configureByText("Person.java", """
                 public class Person {
@@ -223,7 +307,7 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
 
     private void generate(String prefix, boolean generateButMethod) {
         PsiClass psiClass = soleClass();
-        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod);
+        BuilderGenerationOptions options = new BuilderGenerationOptions(prefix, generateButMethod, false);
         WriteCommandAction.runWriteCommandAction(getProject(), () -> BuilderGenerator.generate(getProject(), psiClass, options));
     }
 

@@ -8,7 +8,7 @@ public class GenerateBuilderDialogTest extends BasePlatformTestCase {
     public void testDefaultOptions() {
         GenerateBuilderDialog dialog = new GenerateBuilderDialog(getProject());
         try {
-            assertEquals(new BuilderGenerationOptions("with", false), dialog.getOptions());
+            assertEquals(new BuilderGenerationOptions("with", false, true), dialog.getOptions());
         } finally {
             dialog.close(0);
         }
@@ -19,8 +19,9 @@ public class GenerateBuilderDialogTest extends BasePlatformTestCase {
         try {
             dialog.getMethodPrefixField().setText("set");
             dialog.getGenerateButMethodCheckBox().setSelected(true);
+            dialog.getGenerateBuilderMethodCheckBox().setSelected(false);
 
-            assertEquals(new BuilderGenerationOptions("set", true), dialog.getOptions());
+            assertEquals(new BuilderGenerationOptions("set", true, false), dialog.getOptions());
         } finally {
             dialog.close(0);
         }

@@ -19,6 +19,7 @@ public final class BuilderGenerator {
 
     private static final String BUILDER_CLASS_NAME = "Builder";
     private static final String BUT_METHOD_NAME = "but";
+    private static final String BUILDER_FACTORY_METHOD_NAME = "builder";
 
     private BuilderGenerator() {
     }
@@ -32,15 +33,27 @@ public final class BuilderGenerator {
         PsiMethod allArgsConstructor = findAllArgsConstructor(psiClass, instanceFields);
         PsiField[] fields = allArgsConstructor != null ? instanceFields : nonFinalFields(instanceFields);
 
+        StringBuilder text = new StringBuilder();
+        if (options.generateBuilderMethod()) {
+            text.append(builderFactoryMethodText());
+        }
+        text.append(builderClassText(psiClass.getName(), fields, allArgsConstructor != null, options));
+
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
-        String builderText = builderClassText(psiClass.getName(), fields, allArgsConstructor != null, options);
-        PsiClass dummyContainer = factory.createClassFromText(builderText, psiClass);
-        PsiClass builderTemplate = dummyContainer.getInnerClasses()[0];
+        PsiClass dummyContainer = factory.createClassFromText(text.toString(), psiClass);
 
-        PsiElement addedBuilder = psiClass.add(builderTemplate);
+        JavaCodeStyleManager codeStyleManager = JavaCodeStyleManager.getInstance(project);
+        CodeStyleManager formatter = CodeStyleManager.getInstance(project);
 
-        JavaCodeStyleManager.getInstance(project).shortenClassReferences(addedBuilder);
-        CodeStyleManager.getInstance(project).reformat(addedBuilder);
+        PsiElement addedBuilder = psiClass.add(dummyContainer.getInnerClasses()[0]);
+        codeStyleManager.shortenClassReferences(addedBuilder);
+        formatter.reformat(addedBuilder);
+
+        if (options.generateBuilderMethod()) {
+            PsiElement addedFactoryMethod = psiClass.addBefore(dummyContainer.getMethods()[0], addedBuilder);
+            codeStyleManager.shortenClassReferences(addedFactoryMethod);
+            formatter.reformat(addedFactoryMethod);
+        }
     }
 
     private static PsiField[] instanceFields(PsiClass psiClass) {
@@ -137,6 +150,12 @@ public final class BuilderGenerator {
         }
         text.append(";\n}\n");
         return text.toString();
+    }
+
+    private static String builderFactoryMethodText() {
+        return "public static " + BUILDER_CLASS_NAME + " " + BUILDER_FACTORY_METHOD_NAME + "() {\n"
+                + "return new " + BUILDER_CLASS_NAME + "();\n"
+                + "}\n";
     }
 
     private static String methodName(String prefix, String fieldName) {

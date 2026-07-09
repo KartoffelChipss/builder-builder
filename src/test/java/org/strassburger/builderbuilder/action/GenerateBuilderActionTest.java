@@ -13,7 +13,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("set", false)));
+        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("set", false, false)));
 
         myFixture.checkResult("""
                 public class Person {
@@ -45,7 +45,7 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                 }
                 """);
 
-        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("with", true)));
+        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("with", true, false)));
 
         myFixture.checkResult("""
                 public class Person {
@@ -61,6 +61,42 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
 
                         public Builder but() {
                             return new Builder().withName(name);
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
+    public void testGeneratesBuilderFactoryMethodWhenRequestedInDialog() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    <caret>
+                }
+                """);
+
+        myFixture.testAction(new GenerateBuilderAction(project -> new BuilderGenerationOptions("with", false, true)));
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+
+                    public static Builder builder() {
+                        return new Builder();
+                    }
+
+                    public static class Builder {
+                        private String name;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
                         }
 
                         public Person build() {

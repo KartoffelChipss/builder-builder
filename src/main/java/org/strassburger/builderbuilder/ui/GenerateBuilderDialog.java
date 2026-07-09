@@ -18,6 +18,7 @@ public class GenerateBuilderDialog extends DialogWrapper {
 
     private final JTextField methodPrefixField = new JTextField("with", 15);
     private final JCheckBox generateButMethodCheckBox = new JCheckBox("Generate but() method for creating modified copies");
+    private final JCheckBox generateBuilderMethodCheckBox = new JCheckBox("Generate static builder() factory method", true);
 
     public GenerateBuilderDialog(@Nullable Project project) {
         super(project);
@@ -35,6 +36,10 @@ public class GenerateBuilderDialog extends DialogWrapper {
         prefixRow.add(methodPrefixField);
         panel.add(prefixRow);
 
+        JPanel builderMethodRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        builderMethodRow.add(generateBuilderMethodCheckBox);
+        panel.add(builderMethodRow);
+
         JPanel checkboxRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         checkboxRow.add(generateButMethodCheckBox);
         panel.add(checkboxRow);
@@ -48,7 +53,10 @@ public class GenerateBuilderDialog extends DialogWrapper {
     }
 
     public BuilderGenerationOptions getOptions() {
-        return new BuilderGenerationOptions(methodPrefixField.getText(), generateButMethodCheckBox.isSelected());
+        return new BuilderGenerationOptions(
+                methodPrefixField.getText(),
+                generateButMethodCheckBox.isSelected(),
+                generateBuilderMethodCheckBox.isSelected());
     }
 
     JTextField getMethodPrefixField() {
@@ -57,5 +65,9 @@ public class GenerateBuilderDialog extends DialogWrapper {
 
     JCheckBox getGenerateButMethodCheckBox() {
         return generateButMethodCheckBox;
+    }
+
+    JCheckBox getGenerateBuilderMethodCheckBox() {
+        return generateBuilderMethodCheckBox;
     }
 }
