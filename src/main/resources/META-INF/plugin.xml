@@ -20,4 +20,11 @@
                           anchor="after"/>
         </action>
     </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="org.strassburger.builderbuilder.settings.BuilderBuilderSettings"/>
+        <applicationConfigurable instance="org.strassburger.builderbuilder.settings.BuilderBuilderConfigurable"
+                                  displayName="Builder Builder"
+                                  id="org.strassburger.builderbuilder.settings.BuilderBuilderConfigurable"/>
+    </extensions>
 </idea-plugin>

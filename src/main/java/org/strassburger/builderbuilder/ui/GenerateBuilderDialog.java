@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.strassburger.builderbuilder.generator.BuilderGenerationOptions;
+import org.strassburger.builderbuilder.settings.BuilderBuilderSettings;
 
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -17,14 +18,21 @@ import java.util.Set;
 
 public class GenerateBuilderDialog extends DialogWrapper {
 
-    private final JTextField methodPrefixField = new JTextField("with", 15);
+    private final JTextField methodPrefixField = new JTextField(15);
     private final JCheckBox generateButMethodCheckBox = new JCheckBox("Generate but() method for creating modified copies");
-    private final JCheckBox generateBuilderMethodCheckBox = new JCheckBox("Generate static builder() factory method", true);
+    private final JCheckBox generateBuilderMethodCheckBox = new JCheckBox("Generate static builder() factory method");
     private final JCheckBox generateNullSafetyCheckBox = new JCheckBox("Add JSpecify @Nullable annotations and null-check required fields");
 
     public GenerateBuilderDialog(@Nullable Project project) {
         super(project);
         setTitle("Generate Builder");
+
+        BuilderBuilderSettings settings = BuilderBuilderSettings.getInstance();
+        methodPrefixField.setText(settings.methodPrefix);
+        generateButMethodCheckBox.setSelected(settings.generateButMethod);
+        generateBuilderMethodCheckBox.setSelected(settings.generateBuilderMethod);
+        generateNullSafetyCheckBox.setSelected(settings.generateNullSafety);
+
         init();
     }
 
