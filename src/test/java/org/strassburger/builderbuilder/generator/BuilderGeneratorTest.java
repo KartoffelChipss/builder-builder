@@ -47,6 +47,49 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                 """, true);
     }
 
+    public void testMarksSetterAsDeprecatedWhenFieldIsDeprecated() {
+        myFixture.configureByText("Person.java", """
+                public class Person {
+                    private String name;
+                    @Deprecated
+                    private int age;
+                }
+                """);
+
+        generate("with");
+
+        myFixture.checkResult("""
+                public class Person {
+                    private String name;
+                    @Deprecated
+                    private int age;
+
+                    public static class Builder {
+                        private String name;
+                        private int age;
+
+                        public Builder withName(String name) {
+                            this.name = name;
+                            return this;
+                        }
+
+                        @Deprecated
+                        public Builder withAge(int age) {
+                            this.age = age;
+                            return this;
+                        }
+
+                        public Person build() {
+                            Person result = new Person();
+                            result.name = this.name;
+                            result.age = this.age;
+                            return result;
+                        }
+                    }
+                }
+                """, true);
+    }
+
     public void testEmptyPrefixUsesFieldNameDirectly() {
         myFixture.configureByText("Person.java", """
                 public class Person {

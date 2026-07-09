@@ -2,12 +2,14 @@ package org.strassburger.builderbuilder.generator;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -69,6 +71,27 @@ public final class BuilderGenerator {
     }
 
     /**
+     * Checks the annotation by name rather than resolving it, since {@link PsiField#isDeprecated()}
+     * requires {@code java.lang.Deprecated} to resolve, which isn't guaranteed for every module setup.
+     */
+    private static boolean isDeprecated(PsiField field) {
+        if (field.isDeprecated()) {
+            return true;
+        }
+        PsiModifierList modifierList = field.getModifierList();
+        if (modifierList == null) {
+            return false;
+        }
+        for (PsiAnnotation annotation : modifierList.getAnnotations()) {
+            String qualifiedName = annotation.getQualifiedName();
+            if ("java.lang.Deprecated".equals(qualifiedName) || "Deprecated".equals(qualifiedName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Finds a constructor whose parameters match the given fields 1:1, in order and by type,
      * so the builder can construct immutable instances through it instead of field assignment.
      */
@@ -105,6 +128,9 @@ public final class BuilderGenerator {
         for (PsiField field : fields) {
             String type = field.getType().getCanonicalText();
             String name = field.getName();
+            if (isDeprecated(field)) {
+                text.append("@Deprecated\n");
+            }
             text.append("public ").append(BUILDER_CLASS_NAME).append(' ').append(methodName(methodPrefix, name))
                     .append('(').append(type).append(' ').append(name).append(") {\n")
                     .append("this.").append(name).append(" = ").append(name).append(";\n")
