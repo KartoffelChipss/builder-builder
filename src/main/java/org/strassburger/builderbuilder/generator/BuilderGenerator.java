@@ -160,6 +160,8 @@ public final class BuilderGenerator {
             text.append("private ").append(field.getType().getCanonicalText()).append(' ').append(field.getName()).append(";\n");
         }
 
+        text.append(builderConstructor());
+
         for (PsiField field : fields) {
             String type = field.getType().getCanonicalText();
             String name = field.getName();
@@ -212,6 +214,10 @@ public final class BuilderGenerator {
 
         text.append("}\n");
         return text.toString();
+    }
+
+    private static String builderConstructor() {
+        return "private " + BUILDER_CLASS_NAME + "() {\n}";
     }
 
     private static String butMethodText(PsiField[] fields, String methodPrefix) {
