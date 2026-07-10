@@ -27,6 +27,7 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>1.1.1</b>: Added missing plugin logo</li>
             <li><b>1.1.0</b>: The Builder now has a private constructor and JSpecify annotations are now placed before
             the type.</li>
             <li><b>1.0.0</b>: Initial release: Generate Builder action with field selection, configurable
