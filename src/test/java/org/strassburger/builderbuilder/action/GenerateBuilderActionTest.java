@@ -25,6 +25,9 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder setName(String name) {
                             this.name = name;
                             return this;
@@ -58,6 +61,9 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -99,6 +105,9 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -134,6 +143,9 @@ public class GenerateBuilderActionTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
