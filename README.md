@@ -15,6 +15,8 @@ Select a Java class, open the Generate menu (Alt+Insert or Code > Generate), and
 - Fields already marked `@Deprecated` get a `@Deprecated` setter.
 - Defaults for all of the above can be set under Settings/Preferences > Tools > Builder Builder, so you do not have to reconfigure them every time.
 
+![Builder Dialog](.github/assets/builderdialog.png)
+
 ## Installing the plugin
 
 There are two ways to get the plugin into IntelliJ IDEA.
