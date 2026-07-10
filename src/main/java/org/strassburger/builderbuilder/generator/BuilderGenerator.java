@@ -154,10 +154,11 @@ public final class BuilderGenerator {
         boolean nullSafety = options.generateNullSafety();
 
         for (PsiField field : fields) {
+            text.append("private ");
             if (nullSafety && !isPrimitive(field)) {
                 text.append('@').append(NULLABLE_ANNOTATION_FQN).append(' ');
             }
-            text.append("private ").append(field.getType().getCanonicalText()).append(' ').append(field.getName()).append(";\n");
+            text.append(field.getType().getCanonicalText()).append(' ').append(field.getName()).append(";\n");
         }
 
         text.append(builderConstructor());
