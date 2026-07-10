@@ -32,6 +32,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         private String name;
                         private int age;
 
+                        private Builder() {
+                        }
+
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -74,6 +77,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         private String name;
                         private int age;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -112,6 +118,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder name(String name) {
                             this.name = name;
                             return this;
@@ -142,6 +151,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
 
                     public static class Builder {
                         private String name;
+                
+                        private Builder() {
+                        }
 
                         public Builder name(String name) {
                             this.name = name;
@@ -177,6 +189,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
 
                     public static class Builder {
                         private String name;
+                
+                        private Builder() {
+                        }
 
                         public Builder withName(String name) {
                             this.name = name;
@@ -221,6 +236,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                     public static class Builder {
                         private int x;
                         private int y;
+                
+                        private Builder() {
+                        }
 
                         public Builder withX(int x) {
                             this.x = x;
@@ -259,6 +277,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         private String name;
                         private int age;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -306,6 +327,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -353,6 +377,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -388,6 +415,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                     public static class Builder {
                         private String name;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -436,6 +466,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         private int x;
                         private int y;
 
+                        private Builder() {
+                        }
+                
                         public Builder withX(int x) {
                             this.x = x;
                             return this;
@@ -482,6 +515,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         private String nickname;
                         private int age;
 
+                        private Builder() {
+                        }
+                
                         public Builder withName(String name) {
                             this.name = name;
                             return this;
@@ -547,6 +583,9 @@ public class BuilderGeneratorTest extends BasePlatformTestCase {
                         @org.jspecify.annotations.Nullable
                         private String note;
 
+                        private Builder() {
+                        }
+                
                         public Builder withLabel(String label) {
                             this.label = label;
                             return this;
